@@ -150,9 +150,14 @@ public class EnemyMovement : MonoBehaviour {
             Debug.Log("I'm hit");
         }
 
+        float x = collider.transform.position.x - transform.position.x;
+
         wasHit = true;
 
-        GetComponent<Rigidbody>().AddForce(new Vector3(3, 5, 0), ForceMode.Impulse);
+        if (x < 0)
+            GetComponent<Rigidbody>().AddForce(new Vector3(3, 5, 0), ForceMode.Impulse);
+        else
+            GetComponent<Rigidbody>().AddForce(new Vector3(-3, 5, 0), ForceMode.Impulse);
 
         /*Debug.Log("On contact");
 

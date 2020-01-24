@@ -208,9 +208,9 @@ public class PlayerMovement : MonoBehaviour
 
         ray = new Ray(transform.position, transform.position - Vector3.forward);
 
-        if (directionY <= 0 && Physics.Raycast(ray, out hitInfo, 0.2f, 1 << LayerMask.NameToLayer("Wall")))
+        if (directionY <= 0 && Physics.Raycast(ray, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("Wall")))
         {
-            return hitInfo.distance < 0.1f && hitInfo.distance > 0;
+            return hitInfo.distance < 0.5f && hitInfo.distance > 0;
         }
 
         return false;
