@@ -4,47 +4,215 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float Speed = 1f;
+    private bool jumped = false;
+    private bool pressedJump = false;
 
-    bool isMoving;
+    private bool isFalling = false;
 
-    private float z = 0;
+    private float faceDirectionX = 1f;
+    private float faceDirectionY = 0;
+    private float moveX = 0;
+    private float moveY = 0;
 
+    private float lastY = 0;
+    private float lastZ = 0;
+
+    public float runSpeed;
+
+    bool freshlySpawned = true;
+
+    // Update is called once per frame
+    
     void Start()
     {
+        lastY = GetComponent<Rigidbody>().position.y;
+        lastZ = GetComponent<Rigidbody>().position.z;
+    }
+
+    private void Attack()
+    {
+        // spawn collider in front of player
+        GameObject attackRange = Instantiate(Resources.Load("Prefabs/AttackRange") as GameObject, this.transform.position + new Vector3(0.125f * (faceDirectionX/Mathf.Abs(faceDirectionX)), -0.514f, 0), Quaternion.identity);
+        GameObject.Destroy(attackRange, 0.2f);
+    }
+    
+
+    void Update()
+    {
+        Ray ray = new Ray(transform.position, -Vector3.up);
+        Debug.DrawRay(ray.origin, ray.direction * 10);
+
+        var collider2d = GetComponent<BoxCollider>();
+        var rigidbody2D= GetComponent<Rigidbody>();
+        var animator = GetComponent<Animator>();
+
+        float lastMoveDirection = faceDirectionX;
+
+        bool isGrounded = IsGrounded();
+
+        if (isGrounded && freshlySpawned)
+            freshlySpawned = false;
+
+        moveX = Input.GetAxis("Horizontal");
+        moveY = Input.GetAxis("Vertical");
+
+        if (moveX != 0)
+            faceDirectionX = moveX;
+
+        if (moveY != 0)
+            faceDirectionY = moveY;
+
+
+        if (!isGrounded)
+        {
+            if (!isFalling)
+            {
+                if (rigidbody2D.velocity.y < 0)
+                {
+                    isFalling = true;
+                    animator.SetTrigger("Falling");
+                }
+                    
+            }
+
+        }
+        else
+        {
+            if (isFalling)
+            {
+                isFalling = false;
+                animator.SetTrigger("Landed");
+                jumped = false;
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            Attack();
+        }
+
+        if (isGrounded)
+        {
+            if (!jumped && Input.GetKeyDown(KeyCode.Space))
+            {
+                rigidbody2D.drag = 0f;
+                animator.SetTrigger("Jumped");
+                rigidbody2D.AddForce(Vector3.up * 6, ForceMode.Impulse);
+                jumped = true;
+
+                rigidbody2D.useGravity = true;
+            }
+            else
+            {
+                
+
+                if (moveX < 0.5 && moveX > -0.5 && moveY < 0.5 && moveY > -0.5)
+                {
+                    animator.SetBool("IsRunning", false);
+                }
+                else
+                {
+                    animator.SetBool("IsRunning", true);   
+                }
+            }
+
+            
+        }
+
+        
+        if (lastMoveDirection * faceDirectionX < 0 || lastMoveDirection == 0)
+        {
+            if (faceDirectionX >= 0)
+            {
+                animator.SetFloat("Direction", 1);
+            }
+            else
+            {
+                animator.SetFloat("Direction", 0);
+            }
+        }
+
+        
+
+        
 
     }
 
-    // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        if (Input.GetButtonDown("Horizontal"))
-            isMoving = true;
-        else if (Input.GetButtonUp("Horizontal"))
-            isMoving = false;
+        bool isGrounded = IsGrounded();
 
+        var collider2d = GetComponent<BoxCollider>();
+        var rigidBody = GetComponent<Rigidbody>();
 
-
-        float x = Input.GetAxis("Horizontal");
-        float y = Input.GetAxis("Vertical");
-
-        Debug.Log(x);
-
-        if (!isMoving)
-            GetComponent<Animator>().SetBool("IsRunning", false);
-        else
+        if (TouchingWall(moveY))
         {
-            //GetComponent<Animator>().SetFloat("Blend", x > 0 ? 1 : 0);
-            GetComponent<Animator>().SetBool("IsRunning", true);
-
-            var position = this.transform.position;
-
-            var horizontalMovement = x > 0 ? Mathf.Ceil(x) : Mathf.Floor(x);
-            var verticalMovement = y > 0 ? Mathf.Ceil(y) : Mathf.Floor(y);
-
-            GetComponent<Rigidbody2D>().MovePosition(position + new Vector3(horizontalMovement, verticalMovement)  * Speed * Time.deltaTime);
+            moveY = 0f;
         }
+
+
+        if (moveY == 0f)
+        {
+            var rPos = rigidBody.position;
+            rPos.z = lastZ;
+
+            rigidBody.position = rPos;
+        }
+
+        rigidBody.velocity = new Vector3(moveX, 0, moveY * 2) * Time.deltaTime * runSpeed + new Vector3(0f, rigidBody.velocity.y, 0f);
+
+        lastY = rigidBody.position.y;
+        lastZ = rigidBody.position.z;
         
 
+    }
+
+
+
+    public void Land()
+    {
+        var animator = GetComponent<Animator>();
+
+        animator.SetBool("IsRunning", false);
+    }
+
+    private bool IsGrounded()
+    {
+        if (!freshlySpawned && !jumped)
+            return true;
+
+        var collider2d = GetComponent<BoxCollider>();
+
+        RaycastHit hitInfo;
+        Ray ray = new Ray(transform.position, - Vector3.up);
+
+        if (Physics.Raycast(ray, out hitInfo, 10f, 1 << LayerMask.NameToLayer("Floor")))
+        {
+            return hitInfo.distance < 1.6f && hitInfo.distance > 0;
+        }
+
+        return false;
+    }
+
+    private bool TouchingWall(float directionY)
+    {
+        var collider2d = GetComponent<BoxCollider>();
+
+        RaycastHit hitInfo;
+        Ray ray = new Ray(transform.position, transform.position + Vector3.forward);
+
+        if (directionY > 0 && Physics.Raycast(ray, out hitInfo, 0.2f, 1 << LayerMask.NameToLayer("Wall")) )
+        {
+            return hitInfo.distance < 0.1f && hitInfo.distance > 0;
+        }
+
+        ray = new Ray(transform.position, transform.position - Vector3.forward);
+
+        if (directionY <= 0 && Physics.Raycast(ray, out hitInfo, 0.2f, 1 << LayerMask.NameToLayer("Wall")))
+        {
+            return hitInfo.distance < 0.1f && hitInfo.distance > 0;
+        }
+
+        return false;
     }
 }

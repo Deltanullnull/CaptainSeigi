@@ -2,16 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PLayerJump : MonoBehaviour
-{
+public class EnemyMovement : MonoBehaviour {
+
     private bool jumped = false;
     private bool pressedJump = false;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
     private bool isFalling = false;
 
@@ -24,6 +18,18 @@ public class PLayerJump : MonoBehaviour
 
     bool freshlySpawned = true;
 
+    public bool IsHit { get; set; }
+
+    GameObject playerCharacter;
+
+    void Start()
+    {
+        playerCharacter = GameObject.FindGameObjectWithTag("Player");
+
+        if (playerCharacter == null)
+            Debug.Log("Player not found");
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -31,7 +37,7 @@ public class PLayerJump : MonoBehaviour
         Debug.DrawRay(ray.origin, ray.direction * 10);
 
         var collider2d = GetComponent<BoxCollider>();
-        var rigidbody2D= GetComponent<Rigidbody>();
+        var rigidbody2D = GetComponent<Rigidbody>();
         var animator = GetComponent<Animator>();
 
         float lastMoveDirection = faceDirectionX;
@@ -41,8 +47,10 @@ public class PLayerJump : MonoBehaviour
         if (isGrounded && freshlySpawned)
             freshlySpawned = false;
 
-        moveX = Input.GetAxis("Horizontal");
-        moveY = Input.GetAxis("Vertical");
+        Vector3 vectorToPlayer = (playerCharacter.transform.position - transform.position).normalized;
+
+        moveX = vectorToPlayer.x;
+        moveY = vectorToPlayer.y;
 
         if (moveX != 0)
             faceDirectionX = moveX;
@@ -62,7 +70,7 @@ public class PLayerJump : MonoBehaviour
                     isFalling = true;
                     animator.SetTrigger("Falling");
                 }
-                    
+
             }
 
         }
@@ -78,16 +86,9 @@ public class PLayerJump : MonoBehaviour
 
         if (isGrounded)
         {
-            if (!jumped && Input.GetKeyDown(KeyCode.Space))
+            
             {
-                rigidbody2D.drag = 0f;
-                animator.SetTrigger("Jumped");
-                rigidbody2D.AddForce(Vector3.up * 6, ForceMode.Impulse);
-                jumped = true;
-            }
-            else
-            {
-                
+
 
                 if (moveX < 0.5 && moveX > -0.5 && moveY < 0.5 && moveY > -0.5)
                 {
@@ -95,14 +96,14 @@ public class PLayerJump : MonoBehaviour
                 }
                 else
                 {
-                    animator.SetBool("IsRunning", true);   
+                    animator.SetBool("IsRunning", true);
                 }
             }
 
-            
+
         }
 
-        
+
         if (lastMoveDirection * faceDirectionX < 0 || lastMoveDirection == 0)
         {
             if (faceDirectionX >= 0)
@@ -114,15 +115,14 @@ public class PLayerJump : MonoBehaviour
                 animator.SetFloat("Direction", 0);
             }
         }
-
-        
-
-        
-
     }
 
     void FixedUpdate()
     {
+        if (wasHit)
+            return;
+
+
         bool isGrounded = IsGrounded();
 
         var collider2d = GetComponent<BoxCollider>();
@@ -133,14 +133,33 @@ public class PLayerJump : MonoBehaviour
 
         if (moveX != 0 || moveY != 0)
         {
-
             rigidBody.velocity = new Vector3(moveX, 0, moveY * 2) * Time.deltaTime * runSpeed + new Vector3(0, rigidBody.velocity.y, 0);
-
         }
         else
         {
             rigidBody.velocity = new Vector2(0, rigidBody.velocity.y);
         }
+    }
+
+    bool wasHit = false;
+
+    void OnTriggerEnter(Collider collider)
+    {
+        if (collider.gameObject.layer == LayerMask.NameToLayer("Attack"))
+        {
+            Debug.Log("I'm hit");
+        }
+
+        wasHit = true;
+
+        GetComponent<Rigidbody>().AddForce(new Vector3(3, 5, 0), ForceMode.Impulse);
+
+        /*Debug.Log("On contact");
+
+        foreach(ContactPoint contact in collision.contacts)
+        {
+            Debug.DrawRay(contact.point, contact.normal, Color.white);
+        }*/
     }
 
     public void Land()
@@ -155,19 +174,13 @@ public class PLayerJump : MonoBehaviour
         if (!freshlySpawned && !jumped)
             return true;
 
-        
-
         var collider2d = GetComponent<BoxCollider>();
 
         RaycastHit hitInfo;
-        Ray ray = new Ray(transform.position, - Vector3.up);
-
-        //Debug.DrawRay(ray.origin, ray.origin + ray.direction);
+        Ray ray = new Ray(transform.position, -Vector3.up);
 
         if (Physics.Raycast(ray, out hitInfo, 10f))
         {
-            //Debug.Log("Grounded? " + hitInfo.distance);
-
             return hitInfo.distance < 1.6f && hitInfo.distance > 0;
         }
 
@@ -183,7 +196,7 @@ public class PLayerJump : MonoBehaviour
 
         if (directionY > 0 && Physics.Raycast(ray, out hitInfo, 0.2f))
         {
-            Debug.Log("Touching wall (far) " + hitInfo.distance);
+            //Debug.Log("Touching wall (far) " + hitInfo.distance);
             return hitInfo.distance < 0.1f && hitInfo.distance > 0;
         }
 
@@ -191,10 +204,12 @@ public class PLayerJump : MonoBehaviour
 
         if (directionY < 0 && Physics.Raycast(ray, out hitInfo, 0.2f))
         {
-            Debug.Log("Touching wall (near)" + hitInfo.distance);
+            //Debug.Log("Touching wall (near)" + hitInfo.distance);
             return hitInfo.distance < 0.1f && hitInfo.distance > 0;
         }
 
         return false;
     }
+
+    
 }
