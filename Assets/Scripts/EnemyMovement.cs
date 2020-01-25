@@ -33,8 +33,8 @@ public class EnemyMovement : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        Ray ray = new Ray(transform.position, -Vector3.up);
-        Debug.DrawRay(ray.origin, ray.direction * 10);
+        if (wasHit)
+            return;
 
         var collider2d = GetComponent<BoxCollider>();
         var rigidbody2D = GetComponent<Rigidbody>();
@@ -50,7 +50,7 @@ public class EnemyMovement : MonoBehaviour {
         Vector3 vectorToPlayer = (playerCharacter.transform.position - transform.position).normalized;
 
         moveX = vectorToPlayer.x;
-        moveY = vectorToPlayer.y;
+        moveY = vectorToPlayer.z;
 
         if (moveX != 0)
             faceDirectionX = moveX;
@@ -119,14 +119,21 @@ public class EnemyMovement : MonoBehaviour {
 
     void FixedUpdate()
     {
-        if (wasHit)
-            return;
+
+        var collider2d = GetComponent<BoxCollider>();
+        var rigidBody = GetComponent<Rigidbody>();
 
 
         bool isGrounded = IsGrounded();
 
-        var collider2d = GetComponent<BoxCollider>();
-        var rigidBody = GetComponent<Rigidbody>();
+        if (wasHit && isGrounded && rigidBody.velocity.y < 0)
+        {
+            Debug.Log("Landed");
+            wasHit = false;
+        }
+
+        if (wasHit)
+            return;
 
         if (TouchingWall(moveY))
             moveY = 0;
@@ -145,6 +152,9 @@ public class EnemyMovement : MonoBehaviour {
 
     void OnTriggerEnter(Collider collider)
     {
+        if (wasHit)
+            return;
+
         if (collider.gameObject.layer == LayerMask.NameToLayer("Attack"))
         {
             Debug.Log("I'm hit");
@@ -154,17 +164,22 @@ public class EnemyMovement : MonoBehaviour {
 
         wasHit = true;
 
+        GameObject blood = Instantiate(Resources.Load("Prefabs/Blood") as GameObject, collider.ClosestPointOnBounds(this.transform.position), Quaternion.identity);
+
+        var velOverLifetime = blood.GetComponent<ParticleSystem>().velocityOverLifetime;
+
         if (x < 0)
-            GetComponent<Rigidbody>().AddForce(new Vector3(3, 5, 0), ForceMode.Impulse);
-        else
-            GetComponent<Rigidbody>().AddForce(new Vector3(-3, 5, 0), ForceMode.Impulse);
-
-        /*Debug.Log("On contact");
-
-        foreach(ContactPoint contact in collision.contacts)
         {
-            Debug.DrawRay(contact.point, contact.normal, Color.white);
-        }*/
+            GetComponent<Rigidbody>().AddForce(new Vector3(3, 5, 0), ForceMode.Impulse);
+            velOverLifetime.x = 2f;
+        }
+        else
+        {
+            GetComponent<Rigidbody>().AddForce(new Vector3(-3, 5, 0), ForceMode.Impulse);
+            velOverLifetime.x = -2f;
+        }
+        
+        
     }
 
     public void Land()
@@ -176,7 +191,7 @@ public class EnemyMovement : MonoBehaviour {
 
     private bool IsGrounded()
     {
-        if (!freshlySpawned && !jumped)
+        if (!freshlySpawned && !jumped && !wasHit)
             return true;
 
         var collider2d = GetComponent<BoxCollider>();
@@ -186,7 +201,7 @@ public class EnemyMovement : MonoBehaviour {
 
         if (Physics.Raycast(ray, out hitInfo, 10f))
         {
-            return hitInfo.distance < 1.6f && hitInfo.distance > 0;
+            return hitInfo.distance < 0.9f && hitInfo.distance > 0;
         }
 
         return false;

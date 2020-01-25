@@ -53,6 +53,13 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded && freshlySpawned)
             freshlySpawned = false;
 
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            animator.SetTrigger("Punched");
+            Attack();
+            return;
+        }
+
         moveX = Input.GetAxis("Horizontal");
         moveY = Input.GetAxis("Vertical");
 
@@ -86,10 +93,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            Attack();
-        }
+        
 
         if (isGrounded)
         {
@@ -188,7 +192,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (Physics.Raycast(ray, out hitInfo, 10f, 1 << LayerMask.NameToLayer("Floor")))
         {
-            return hitInfo.distance < 1.6f && hitInfo.distance > 0;
+            return hitInfo.distance < 0.9f && hitInfo.distance > 0;
         }
 
         return false;
