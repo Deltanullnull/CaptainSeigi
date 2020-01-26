@@ -1,13 +1,9 @@
 fileFormatVersion: 2
-guid: 5e45d94419bffec43892b101bebd7c24
+guid: 70d6f3fe30ef1a64b853803fcc8dee77
 TextureImporter:
   fileIDToRecycleName:
-    21300000: Yumi_Jump_0
-    21300002: Yumi_Jump_1
-    21300004: Yumi_Jump_2
-    21300006: Yumi_Jump_3
-    21300008: Yumi_Jump_4
-    21300010: Yumi_Jump_5
+    21300000: hit_bw_0
+    21300002: hit_bw_1
   externalObjects: {}
   serializedVersion: 7
   mipmaps:
@@ -42,7 +38,7 @@ TextureImporter:
     mipBias: -100
     wrapU: 1
     wrapV: 1
-    wrapW: -1
+    wrapW: 1
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
@@ -87,7 +83,7 @@ TextureImporter:
     overridden: 0
     androidETC2FallbackOverride: 0
   - serializedVersion: 2
-    buildTarget: WebGL
+    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -101,73 +97,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Yumi_Jump_0
+      name: hit_bw_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 80
-        width: 47
-        height: 80
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c50d84e4b4044e24184d7692c8ff5b54
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Yumi_Jump_1
-      rect:
-        serializedVersion: 2
-        x: 47
-        y: 80
-        width: 47
-        height: 80
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 872271158eff0ce4a837e53ef258eefa
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Yumi_Jump_2
-      rect:
-        serializedVersion: 2
-        x: 94
-        y: 80
-        width: 47
-        height: 80
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 9c13965ea27fcb54a88fe26402201f35
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Yumi_Jump_3
-      rect:
-        serializedVersion: 2
-        x: 0
+        x: 3
         y: 0
-        width: 47
-        height: 80
+        width: 60
+        height: 59
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -175,19 +111,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 47cf298921ca3fa4dbcdfd2feb1f412c
+      spriteID: d997c86a9260fc44987eb3ba237030c1
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Yumi_Jump_4
+      name: hit_bw_1
       rect:
         serializedVersion: 2
-        x: 47
+        x: 74
         y: 0
-        width: 47
-        height: 80
+        width: 60
+        height: 59
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -195,27 +131,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0ddfef1c9136a6e4590dbe8cd87d46a8
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Yumi_Jump_5
-      rect:
-        serializedVersion: 2
-        x: 94
-        y: 0
-        width: 47
-        height: 80
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 49902dd64a92d404c849e7dd6e1fc219
+      spriteID: 3fe4cfb67726109469d745f7bc7da6b1
       vertices: []
       indices: 
       edges: []
@@ -223,7 +139,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: e579ab727572ab94d80bf3e041af27a3
+    spriteID: 5330a21159406204a95b5d8295ca3541
     vertices: []
     indices: 
     edges: []

@@ -20,8 +20,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4173769127373028}
   - component: {fileID: 135105901396558712}
-  m_Layer: 12
-  m_Name: AttackRange
+  m_Layer: 13
+  m_Name: AttackRangeEnemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

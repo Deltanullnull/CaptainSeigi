@@ -21,8 +21,14 @@ public class PlayerMovement : MonoBehaviour
 
     bool freshlySpawned = true;
 
+    public delegate void OnEnemyDelegate(GameObject enemy);
+
+    public OnEnemyDelegate OnEnemyEntered;
+    public OnEnemyDelegate OnEnemyExited;
+
     // Update is called once per frame
-    
+    bool wasHit = false;
+
     void Start()
     {
         lastY = GetComponent<Rigidbody>().position.y;
@@ -32,10 +38,56 @@ public class PlayerMovement : MonoBehaviour
     private void Attack()
     {
         // spawn collider in front of player
-        GameObject attackRange = Instantiate(Resources.Load("Prefabs/AttackRange") as GameObject, this.transform.position + new Vector3(0.125f * (faceDirectionX/Mathf.Abs(faceDirectionX)), -0.514f, 0), Quaternion.identity);
+        GameObject attackRange = Instantiate(Resources.Load("Prefabs/AttackRange") as GameObject, this.transform.position + new Vector3(0.4f * (faceDirectionX/Mathf.Abs(faceDirectionX)), -0.514f, 0), Quaternion.identity);
         GameObject.Destroy(attackRange, 0.2f);
     }
-    
+
+    void OnTriggerEnter(Collider collider)
+    {
+        if (collider.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+        {
+            OnEnemyEntered.Invoke(collider.gameObject);
+        }
+        else if (collider.gameObject.layer == LayerMask.NameToLayer("AttackEnemy"))
+        {
+            //if (wasHit)
+              //  return;
+
+            float x = collider.transform.position.x - transform.position.x;
+
+            wasHit = true;
+
+            var animator = GetComponent<Animator>();
+            //animator.SetBool("Hit", true);
+
+            GameObject blood = Instantiate(Resources.Load("Prefabs/Blood") as GameObject, collider.ClosestPointOnBounds(this.transform.position), Quaternion.identity);
+
+            var velOverLifetime = blood.GetComponent<ParticleSystem>().velocityOverLifetime;
+
+            if (x < 0)
+            {
+                GetComponent<Rigidbody>().AddForce(new Vector3(1, 1, 0), ForceMode.Impulse);
+                velOverLifetime.x = 2f;
+            }
+            else
+            {
+                GetComponent<Rigidbody>().AddForce(new Vector3(-1, 1, 0), ForceMode.Impulse);
+                velOverLifetime.x = -2f;
+            }
+
+            // TODO drop health
+        }
+
+    }
+
+    void OnTriggerExit(Collider collider)
+    {
+        if (collider.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+        {
+            OnEnemyExited.Invoke(collider.gameObject);
+        }
+
+    }
 
     void Update()
     {
@@ -180,6 +232,8 @@ public class PlayerMovement : MonoBehaviour
         animator.SetBool("IsRunning", false);
     }
 
+    
+
     private bool IsGrounded()
     {
         if (!freshlySpawned && !jumped)
@@ -205,13 +259,12 @@ public class PlayerMovement : MonoBehaviour
         RaycastHit hitInfo;
         Ray ray = new Ray(transform.position, transform.position + Vector3.forward);
 
-        if (directionY > 0 && Physics.Raycast(ray, out hitInfo, 0.2f, 1 << LayerMask.NameToLayer("Wall")) )
+        if (directionY >= 0 && Physics.Raycast(ray, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("Wall")) )
         {
-            return hitInfo.distance < 0.1f && hitInfo.distance > 0;
+            return hitInfo.distance < 0.5f && hitInfo.distance > 0;
         }
 
-        ray = new Ray(transform.position, transform.position - Vector3.forward);
-
+        ray = new Ray(transform.position, transform.position - Vector3.forward); // Foreground
         if (directionY <= 0 && Physics.Raycast(ray, out hitInfo, 0.5f, 1 << LayerMask.NameToLayer("Wall")))
         {
             return hitInfo.distance < 0.5f && hitInfo.distance > 0;

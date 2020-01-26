@@ -22,6 +22,9 @@ public class EnemyMovement : MonoBehaviour {
 
     GameObject playerCharacter;
 
+    public delegate void OnDestroyedDelegate(GameObject enemy);
+    public OnDestroyedDelegate OnKilled;
+
     void Start()
     {
         playerCharacter = GameObject.FindGameObjectWithTag("Player");
@@ -29,6 +32,9 @@ public class EnemyMovement : MonoBehaviour {
         if (playerCharacter == null)
             Debug.Log("Player not found");
     }
+
+    private float cooldown = 1f;
+    private float attackAnimationDuration = 0.3f;
 
     // Update is called once per frame
     void Update()
@@ -39,6 +45,23 @@ public class EnemyMovement : MonoBehaviour {
         var collider2d = GetComponent<BoxCollider>();
         var rigidbody2D = GetComponent<Rigidbody>();
         var animator = GetComponent<Animator>();
+
+        if (closeToPlayer && cooldown >= 1f)
+        {
+            animator.SetTrigger("Punched");
+            Attack();
+
+            cooldown = 0f;
+
+            return;
+        }
+
+        if (cooldown < 1f)
+        {
+            cooldown += Time.deltaTime;
+        }
+
+        
 
         float lastMoveDirection = faceDirectionX;
 
@@ -60,6 +83,12 @@ public class EnemyMovement : MonoBehaviour {
 
         if (moveY != 0 && isGrounded)
             faceDirectionY = moveY;
+
+        if (cooldown < attackAnimationDuration)
+        {
+            moveX = 0;
+            moveY = 0;
+        }
 
         if (!isGrounded)
         {
@@ -86,7 +115,7 @@ public class EnemyMovement : MonoBehaviour {
 
         if (isGrounded)
         {
-            
+
             {
 
 
@@ -117,6 +146,13 @@ public class EnemyMovement : MonoBehaviour {
         }
     }
 
+    private void Attack()
+    {
+        // spawn collider in front of player
+        GameObject attackRange = Instantiate(Resources.Load("Prefabs/AttackRangeEnemy") as GameObject, this.transform.position + new Vector3(0.4f * (faceDirectionX / Mathf.Abs(faceDirectionX)), -0.514f, 0), Quaternion.identity);
+        GameObject.Destroy(attackRange, 0.2f);
+    }
+
     void FixedUpdate()
     {
 
@@ -126,11 +162,7 @@ public class EnemyMovement : MonoBehaviour {
 
         bool isGrounded = IsGrounded();
 
-        if (wasHit && isGrounded && rigidBody.velocity.y < 0)
-        {
-            Debug.Log("Landed");
-            wasHit = false;
-        }
+
 
         if (wasHit)
             return;
@@ -149,6 +181,7 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     bool wasHit = false;
+    public bool closeToPlayer { get; set;}
 
     void OnTriggerEnter(Collider collider)
     {
@@ -157,29 +190,37 @@ public class EnemyMovement : MonoBehaviour {
 
         if (collider.gameObject.layer == LayerMask.NameToLayer("Attack"))
         {
-            Debug.Log("I'm hit");
+            float x = collider.transform.position.x - transform.position.x;
+
+            wasHit = true;
+
+            var animator = GetComponent<Animator>();
+            animator.SetBool("Hit", true);
+
+            GameObject blood = Instantiate(Resources.Load("Prefabs/Blood") as GameObject, collider.ClosestPointOnBounds(this.transform.position), Quaternion.identity);
+
+            var velOverLifetime = blood.GetComponent<ParticleSystem>().velocityOverLifetime;
+
+            if (x < 0)
+            {
+                GetComponent<Rigidbody>().AddForce(new Vector3(3, 5, 0), ForceMode.Impulse);
+                velOverLifetime.x = 2f;
+            }
+            else
+            {
+                GetComponent<Rigidbody>().AddForce(new Vector3(-3, 5, 0), ForceMode.Impulse);
+                velOverLifetime.x = -2f;
+            }
+
+            Destroy(this.gameObject, 2f);
         }
 
-        float x = collider.transform.position.x - transform.position.x;
+    }
 
-        wasHit = true;
-
-        GameObject blood = Instantiate(Resources.Load("Prefabs/Blood") as GameObject, collider.ClosestPointOnBounds(this.transform.position), Quaternion.identity);
-
-        var velOverLifetime = blood.GetComponent<ParticleSystem>().velocityOverLifetime;
-
-        if (x < 0)
-        {
-            GetComponent<Rigidbody>().AddForce(new Vector3(3, 5, 0), ForceMode.Impulse);
-            velOverLifetime.x = 2f;
-        }
-        else
-        {
-            GetComponent<Rigidbody>().AddForce(new Vector3(-3, 5, 0), ForceMode.Impulse);
-            velOverLifetime.x = -2f;
-        }
-        
-        
+    
+    void OnDestroy()
+    {
+        OnKilled.Invoke(this.gameObject);
     }
 
     public void Land()
@@ -187,6 +228,26 @@ public class EnemyMovement : MonoBehaviour {
         var animator = GetComponent<Animator>();
 
         animator.SetBool("IsRunning", false);
+    }
+
+    void OnCollisionExit(Collision c)
+    {
+        if (c.gameObject.layer == LayerMask.NameToLayer("Floor"))
+        {
+            Debug.Log("Left floor");
+        }
+    }
+
+    void OnCollisionEnter(Collision c)
+    {
+        if (c.gameObject.layer == LayerMask.NameToLayer("Floor"))
+        {
+            if (wasHit)
+            {
+                var animator = GetComponent<Animator>();
+                animator.SetBool("Dead", true);
+            }
+        }
     }
 
     private bool IsGrounded()
