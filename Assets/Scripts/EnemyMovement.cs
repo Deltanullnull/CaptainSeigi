@@ -39,12 +39,20 @@ public class EnemyMovement : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (wasHit)
-            return;
-
         var collider2d = GetComponent<BoxCollider>();
         var rigidbody2D = GetComponent<Rigidbody>();
         var animator = GetComponent<Animator>();
+
+        if (wasHit)
+            return;
+
+        if (!playerCharacter.GetComponent<PlayerMovement>().playerAlive)
+        {
+            moveX = moveY = 0;
+            animator.SetBool("IsRunning", false);
+            return;
+        }
+        
 
         if (closeToPlayer && cooldown >= 1f)
         {
@@ -234,7 +242,7 @@ public class EnemyMovement : MonoBehaviour {
     {
         if (c.gameObject.layer == LayerMask.NameToLayer("Floor"))
         {
-            Debug.Log("Left floor");
+            
         }
     }
 

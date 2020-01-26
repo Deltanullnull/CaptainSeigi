@@ -21,6 +21,8 @@ public class PlayerMovement : MonoBehaviour
 
     bool freshlySpawned = true;
 
+    public int health = 100;
+
     public delegate void OnEnemyDelegate(GameObject enemy);
 
     public OnEnemyDelegate OnEnemyEntered;
@@ -28,11 +30,17 @@ public class PlayerMovement : MonoBehaviour
 
     // Update is called once per frame
     bool wasHit = false;
+    public bool playerAlive { get; set; }
+
+    public UnityEngine.UI.Slider healthSlider;
 
     void Start()
     {
         lastY = GetComponent<Rigidbody>().position.y;
         lastZ = GetComponent<Rigidbody>().position.z;
+
+        healthSlider.value = health;
+        playerAlive = true;
     }
 
     private void Attack()
@@ -57,27 +65,54 @@ public class PlayerMovement : MonoBehaviour
 
             wasHit = true;
 
-            var animator = GetComponent<Animator>();
-            //animator.SetBool("Hit", true);
+            health -= 10;
+
+            
 
             GameObject blood = Instantiate(Resources.Load("Prefabs/Blood") as GameObject, collider.ClosestPointOnBounds(this.transform.position), Quaternion.identity);
 
             var velOverLifetime = blood.GetComponent<ParticleSystem>().velocityOverLifetime;
 
+            float forceMultiplier = 1f;
+
+            if (health <= 0)
+            {
+                var animator = GetComponent<Animator>();
+                animator.SetBool("Hit", true);
+
+                playerAlive = false;
+
+                moveX = moveY = 0f;
+
+                forceMultiplier = 2f;
+                // TODO isDead
+            }
+
             if (x < 0)
             {
-                GetComponent<Rigidbody>().AddForce(new Vector3(1, 1, 0), ForceMode.Impulse);
+                GetComponent<Rigidbody>().AddForce(new Vector3(1, 1, 0) * forceMultiplier, ForceMode.Impulse);
                 velOverLifetime.x = 2f;
             }
             else
             {
-                GetComponent<Rigidbody>().AddForce(new Vector3(-1, 1, 0), ForceMode.Impulse);
+                GetComponent<Rigidbody>().AddForce(new Vector3(-1, 1, 0) * forceMultiplier, ForceMode.Impulse);
                 velOverLifetime.x = -2f;
             }
 
-            // TODO drop health
         }
 
+    }
+
+    void OnCollisionEnter(Collision c)
+    {
+        if (c.gameObject.layer == LayerMask.NameToLayer("Floor"))
+        {
+            if (!playerAlive)
+            {
+                var animator = GetComponent<Animator>();
+                animator.SetBool("Dead", true);
+            }
+        }
     }
 
     void OnTriggerExit(Collider collider)
@@ -91,6 +126,11 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        healthSlider.value = health;
+
+        if (!playerAlive)
+            return;
+
         Ray ray = new Ray(transform.position, -Vector3.up);
         Debug.DrawRay(ray.origin, ray.direction * 10);
 
@@ -188,14 +228,17 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        
 
         
+
 
     }
 
     void FixedUpdate()
     {
+        if (!playerAlive)
+            return;
+
         bool isGrounded = IsGrounded();
 
         var collider2d = GetComponent<BoxCollider>();

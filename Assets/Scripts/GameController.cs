@@ -10,8 +10,9 @@ public class GameController : MonoBehaviour {
     public Transform enemySocket;
 
     int downedEnemies = 0;
-
     int finishedWaves = 0;
+
+    int enemiesAtSameTime = 3;
 
     bool newWave = true;
 
@@ -42,12 +43,17 @@ public class GameController : MonoBehaviour {
 
         while (true)
         {
-            if (enemySocket.childCount < 2 + finishedWaves && newWave)
+            if (downedEnemies < 2 + finishedWaves)
             {
-                SpawnEnemy();
-                
-                
+                if (enemySocket.childCount < enemiesAtSameTime && newWave)
+                {
+                    SpawnEnemy();
+
+
+                }
             }
+
+            
 
             if (enemySocket.childCount == 2+ finishedWaves)
             {
@@ -84,6 +90,12 @@ public class GameController : MonoBehaviour {
             if (enemySocket.childCount == 1)
             {
                 finishedWaves++;
+
+                if (finishedWaves % 2 == 0)
+                    enemiesAtSameTime++;
+
+                downedEnemies = 0;
+
                 newWave = true;
             }
         });
