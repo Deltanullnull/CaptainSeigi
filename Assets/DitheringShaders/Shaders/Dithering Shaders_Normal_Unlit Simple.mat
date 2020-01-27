@@ -5,7 +5,8 @@ Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: Dithering Shaders_Normal_Unlit Simple
   m_Shader: {fileID: 4800000, guid: f32562030fbc0bf49b7c4ce4fdbdd8c3, type: 3}
   m_ShaderKeywords: 
@@ -23,10 +24,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _PaletteTex:
-        m_Texture: {fileID: 2800000, guid: d336e19b08f3a2b489f579ac8076114f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 30c27b8b295e81f448b11552682b754b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _ColorCount: 6
+    - _Brightness: 1
+    - _ColorCount: 1
     - _PaletteHeight: 128
     m_Colors: []

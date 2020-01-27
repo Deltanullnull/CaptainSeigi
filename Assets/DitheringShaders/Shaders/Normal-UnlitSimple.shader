@@ -5,6 +5,7 @@ Shader "Dithering Shaders/Normal/Unlit Simple" {
 		_MainTex ("Base (RGB)", 2D) = "white" {}
 		_ColorCount ("Mixed Color Count", float) = 4
 		_PaletteHeight ("Palette Height", float) = 128
+		_Brightness("Palette Height", Range(0.0,1.0)) = 1.0
 		_PaletteTex ("Palette (Max 4 Mixed Colors)", 2D) = "black" {}
 	}
 
@@ -24,6 +25,7 @@ Shader "Dithering Shaders/Normal/Unlit Simple" {
 			sampler2D _PaletteTex;
 			float _ColorCount;
 			float _PaletteHeight;
+			float _Brightness;
 
 			struct VertexInput {
 				float4 position : POSITION;
@@ -45,7 +47,10 @@ Shader "Dithering Shaders/Normal/Unlit Simple" {
 			}
 
 			fixed4 frag(FragmentInput i) : COLOR {
-				float4 c = tex2D(_MainTex, i.uv);
+				float4 c = tex2D(_MainTex, i.uv) * _Brightness;
+
+				c.a = 1.0;
+
 				return fixed4(GetDitherColorSimple(c.rgb, _PaletteTex,
 					_PaletteHeight, i.screenPos, _ColorCount), c.a);
 			}

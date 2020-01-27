@@ -24,9 +24,12 @@ public class PlayerMovement : MonoBehaviour
     public int health = 100;
 
     public delegate void OnEnemyDelegate(GameObject enemy);
+    public delegate void OnGameOverDelegate();
 
     public OnEnemyDelegate OnEnemyEntered;
     public OnEnemyDelegate OnEnemyExited;
+
+    public OnGameOverDelegate OnGameOver;
 
     // Update is called once per frame
     bool wasHit = false;
@@ -41,6 +44,8 @@ public class PlayerMovement : MonoBehaviour
 
         healthSlider.value = health;
         playerAlive = true;
+
+        StartCoroutine(DropHealth());
     }
 
     private void Attack()
@@ -85,7 +90,8 @@ public class PlayerMovement : MonoBehaviour
                 moveX = moveY = 0f;
 
                 forceMultiplier = 2f;
-                // TODO isDead
+                
+                OnGameOver.Invoke();
             }
 
             if (x < 0)
@@ -101,6 +107,19 @@ public class PlayerMovement : MonoBehaviour
 
         }
 
+    }
+
+    private IEnumerator DropHealth()
+    {
+        float dropSpeed = 10f;
+
+        while (true)
+        {
+
+            healthSlider.value = Mathf.Lerp(healthSlider.value, health, Time.deltaTime * dropSpeed);
+
+            yield return null;
+        }
     }
 
     void OnCollisionEnter(Collision c)
@@ -126,7 +145,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        healthSlider.value = health;
+        
 
         if (!playerAlive)
             return;
@@ -145,7 +164,7 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded && freshlySpawned)
             freshlySpawned = false;
 
-        if (Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             animator.SetTrigger("Punched");
             Attack();
@@ -189,16 +208,15 @@ public class PlayerMovement : MonoBehaviour
 
         if (isGrounded)
         {
-            if (!jumped && Input.GetKeyDown(KeyCode.Space))
+            /*if (!jumped && Input.GetKeyDown(KeyCode.Space))
             {
                 rigidbody2D.drag = 0f;
                 animator.SetTrigger("Jumped");
                 rigidbody2D.AddForce(Vector3.up * 6, ForceMode.Impulse);
                 jumped = true;
 
-                rigidbody2D.useGravity = true;
             }
-            else
+            else*/
             {
                 
 
@@ -267,7 +285,7 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
-
+   
     public void Land()
     {
         var animator = GetComponent<Animator>();

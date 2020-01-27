@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour {
 
@@ -16,6 +17,10 @@ public class GameController : MonoBehaviour {
 
     bool newWave = true;
 
+    public ScoreSystem score;
+
+
+
     List<GameObject> enemiesInRange = new List<GameObject>();
 
     // Use this for initialization
@@ -29,6 +34,8 @@ public class GameController : MonoBehaviour {
             enemiesInRange.Remove(e);
         });
 
+        player.OnGameOver += GameOver;
+
         StartCoroutine(SpawnRandomly());
     }
 
@@ -36,6 +43,8 @@ public class GameController : MonoBehaviour {
     void Update () {
 		
 	}
+
+    
 
     IEnumerator SpawnRandomly()
     {
@@ -67,6 +76,38 @@ public class GameController : MonoBehaviour {
         
     }
 
+    private void GameOver()
+    {
+        string highscorePrefs = PlayerPrefs.GetString("Highscore");
+
+        if (highscorePrefs == null)
+        {
+            Debug.Log("no highscore yet");
+            highscorePrefs = "";
+        }
+        else if (highscorePrefs != "")
+        {
+            highscorePrefs += "\n";
+        }
+
+        highscorePrefs += "Me;" + score.Score.ToString();
+
+        PlayerPrefs.SetString("Highscore", highscorePrefs);
+
+        PlayerPrefs.Save();
+
+        Debug.Log("Saved to ");
+
+        StartCoroutine(SwitchScene());
+    }
+
+    IEnumerator SwitchScene()
+    {
+        yield return new WaitForSeconds(3f);
+
+        SceneManager.LoadScene(2);
+    }
+
     private void SpawnEnemy()
     {
         GameObject spawnArea;
@@ -91,6 +132,8 @@ public class GameController : MonoBehaviour {
             {
                 finishedWaves++;
 
+                score.UpdateScore(20);
+
                 if (finishedWaves % 2 == 0)
                     enemiesAtSameTime++;
 
@@ -98,6 +141,13 @@ public class GameController : MonoBehaviour {
 
                 newWave = true;
             }
+        });
+
+        newEnemy.GetComponent<EnemyMovement>().OnDefeated += ((e) =>
+        {
+            score.UpdateScore(10);
+
+           
         });
 
 

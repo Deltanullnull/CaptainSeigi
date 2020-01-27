@@ -13,7 +13,7 @@ public class EnemyTrigger : MonoBehaviour {
     {
         if (collider.gameObject.layer == LayerMask.NameToLayer("Player"))
         {
-            Debug.Log("Close to player");
+            //Debug.Log("Close to player");
 
             this.transform.parent.GetComponent<EnemyMovement>().closeToPlayer = true;
         }
@@ -23,7 +23,7 @@ public class EnemyTrigger : MonoBehaviour {
     {
         if (collider.gameObject.layer == LayerMask.NameToLayer("Player"))
         {
-            Debug.Log("Not Close to player");
+            //Debug.Log("Not Close to player");
 
             this.transform.parent.GetComponent<EnemyMovement>().closeToPlayer = false;
         }

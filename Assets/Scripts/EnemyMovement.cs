@@ -23,6 +23,8 @@ public class EnemyMovement : MonoBehaviour {
     GameObject playerCharacter;
 
     public delegate void OnDestroyedDelegate(GameObject enemy);
+
+    public OnDestroyedDelegate OnDefeated;
     public OnDestroyedDelegate OnKilled;
 
     void Start()
@@ -219,6 +221,8 @@ public class EnemyMovement : MonoBehaviour {
                 GetComponent<Rigidbody>().AddForce(new Vector3(-3, 5, 0), ForceMode.Impulse);
                 velOverLifetime.x = -2f;
             }
+
+            OnDefeated.Invoke(this.gameObject);
 
             Destroy(this.gameObject, 2f);
         }
